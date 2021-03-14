@@ -1,0 +1,1052 @@
+---
+title: "Generate Negative Properties Test Data"
+author: "Stephen Stead"
+date: "25/07/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is the R Markdown document for Generating the Negative Properties Test Data set. 
+
+Set working directory and Load Files.
+
+Regions.csv contains the region names that will be used to generate the "shelf marks" E41 Appellations.
+```{r, warning=FALSE, message=FALSE, eval=FALSE}
+setwd("~/Heritage/LCD")
+library(readr)
+Regions <- read_csv("Regions.csv")
+```
+Create "Shelf Mark" appelations
+```{r, warning=FALSE, message=FALSE, eval=FALSE}
+shelfmarks<- setNames(data.frame(matrix(nrow = 28000, ncol=1), stringsAsFactors = FALSE), c("shelfmark"))
+
+for (i in 1:28){
+  smc<-0
+  for (c in 1:1000){
+    smc<-smc+round(0.51+(runif(1, min=0, max=15)/10))
+    smch<-paste("000",smc, sep="")
+    pz<-((i-1)*1000)+c
+    shelfmarks[pz,1]<-paste(Regions[i,1],substr(smch,nchar(smch)-3,nchar(smch)), sep="")
+  }
+}
+```
+Generate MID plus the component and feature counts and identifiers
+NB Remember to increment "rn" when creating a new dataset
+```{r, warning=FALSE, message=FALSE, eval=FALSE}
+# Load dplyr
+library(dplyr)
+MID<- setNames(data.frame(matrix(nrow = 28000, ncol=48), stringsAsFactors = FALSE), c("SHELFMARK","MID","Run","BB","SP","BD","CL","INC","BBID","BBNF","BBF1T","BBF1ID","BBF2T","BBF2ID","BBF3T","BBF3ID","BBF4T","BBF4ID","SPID","SPNF","SPF1T","SPF1ID","SPF2T","SPF2ID","SPF3T","SPF3ID","SPF4T","SPF4ID","SPF5T","SPF5ID","SPF6T","SPF6ID","SPF7T","SPF7ID","SPF8T","SPF8ID","BD1ID","BD2ID","CLP1","CLP1CSR","CLP2","CLP2CSR","BD1BDCLC1ID","BD2BDCLC1ID","BD2CSR1ID","BD1BDCLC2ID","BD2BDCLC2ID","BD2CSR2ID"))
+#Set Run number and starting numbers for CID and FID
+rn<-1
+CIDcnt<-1000001
+FIDcnt<-10000001
+#start outerloop
+for (i in 1:28000) {
+MID$SHELFMARK[i]<-shelfmarks[i,1]
+MID$Run[i]<-rn
+MID$INC[i]<-10000+i
+BBrnd<-floor(runif(1, min=0, max=200))
+MID$BB[i]<-case_when(BBrnd == 0 ~ 0,
+          BBrnd == 1 ~ 1,
+          TRUE ~ 2)
+SPrnd<-floor(runif(1, min=0, max=200))
+if(MID$BB[i]== 0){
+  MID$SP[i]<- case_when(SPrnd < 8 ~ 0,
+                    TRUE ~ 1)
+}else{if(MID$BB[i]== 1){
+    MID$SP[i]<- case_when(SPrnd < 8 ~ 0,
+                          SPrnd < 9 ~ 1,
+                    TRUE ~ 2)
+}else{
+    MID$SP[i]<- case_when(SPrnd < 8 ~ 0,
+                          SPrnd < 9 ~ 1,
+                          SPrnd < 10 ~ 2,
+                    TRUE ~ 3)
+}}
+BDrnd<-floor(runif(1, min=0, max=200))
+if(MID$BB[i]== 0){
+  MID$BD[i]<- case_when(BDrnd < 1 ~ 2,
+                        BDrnd < 2 ~ 3,
+                        BDrnd < 3 ~ 4,
+                        BDrnd < 4 ~ 5,
+                        BDrnd < 5 ~ 6,
+                        BDrnd < 6 ~ 7,
+                        BDrnd < 7 ~ 8,
+                    TRUE ~ 9)
+
+  }else{
+    MID$BD[i]<- case_when(BDrnd < 20 ~ 0,
+                          BDrnd < 21 ~ 1,
+                          BDrnd < 22 ~ 2,
+                          BDrnd < 23 ~ 3,
+                          BDrnd < 24 ~ 4,
+                          BDrnd < 25 ~ 5,
+                          BDrnd < 26 ~ 6,
+                          BDrnd < 27 ~ 7,
+                          BDrnd < 28 ~ 8,
+                    TRUE ~ 9)
+}
+CLrnd<-floor(runif(1, min=0, max=1000))
+if(MID$BD[i]<2){
+  MID$CL[i]<- 0
+}else{if(MID$BD[i]== 6){
+    MID$CL[i]<- case_when(CLrnd < 950 ~ 0,
+                          CLrnd < 985 ~ 2,
+                    TRUE ~ 8)
+}else
+  {
+    MID$CL[i]<- case_when(CLrnd < 950 ~ 0,
+                          CLrnd < 951 ~ 1,
+                          CLrnd < 952 ~ 2,
+                          CLrnd < 985 ~ 3,
+                          CLrnd < 986 ~ 4,
+                          CLrnd < 987 ~ 5,
+                          CLrnd < 988 ~ 6,
+                          CLrnd < 989 ~ 7,
+                          CLrnd < 990 ~ 8,
+                    TRUE ~ 9)
+  }}
+MID$MID[i]<-paste("MID",MID$Run[i],MID$BB[i],MID$SP[i],MID$BD[i],MID$CL[i],MID$INC[i], sep = "")
+MID$MID[i]
+
+# Deal with Spine ID and Features
+SPFrnd<-floor(runif(1, min=0, max=100))
+if(MID$SP[i]>1){
+  MID$SPID[i]<-paste("CID",CIDcnt, sep="")
+        CIDcnt<-CIDcnt+1
+ SPsw<- case_when(SPFrnd < 11 ~ 1,
+                  SPFrnd < 13 ~ 2,
+                  SPFrnd < 14 ~ 3,
+                  SPFrnd < 16 ~ 4,
+                  SPFrnd < 20 ~ 5,
+                  SPFrnd < 31 ~ 6,
+                  SPFrnd < 33 ~ 7,
+                  SPFrnd < 34 ~ 8,
+                  SPFrnd < 36 ~ 9,
+                  SPFrnd < 40 ~ 10,
+                  SPFrnd < 46 ~ 11,
+                  SPFrnd < 54 ~ 12,
+                  SPFrnd < 64 ~ 13,
+                  SPFrnd < 80 ~ 14,
+                  SPFrnd < 92 ~ 15,
+                    TRUE ~ 16)
+ MID$SPNF[i]<-switch(SPsw,2,4,8,6,8,2,4,8,6,8,2,6,3,4,6,0)
+ MID$SPF1T[i]<-switch(SPsw,"sawn-in recesses","sawn-in recesses","sawn-in recesses","sawn-in recesses","sawn-in recesses","v-shaped recesses","v-shaped recesses","v-shaped recesses","v-shaped recesses","v-shaped recesses","adhesive recesses","adhesive recesses","adhesive recesses","sewing recesses","sewing recesses",NA)
+  MID$SPF2T[i]<-switch(SPsw,"sawn-in recesses","sawn-in recesses","sawn-in recesses","sawn-in recesses","sawn-in recesses","v-shaped recesses","v-shaped recesses","v-shaped recesses","v-shaped recesses","v-shaped recesses","adhesive recesses","adhesive recesses","adhesive recesses","sewing recesses","sewing recesses",NA)
+   MID$SPF3T[i]<-switch(SPsw,NA,"adhesive recesses","adhesive recesses","sewing recesses","sewing recesses",NA,"adhesive recesses","adhesive recesses","sewing recesses","sewing recesses",NA,"sewing recesses","adhesive recesses","sewing recesses","sewing recesses",NA)
+   MID$SPF4T[i]<-switch(SPsw,NA,"adhesive recesses","adhesive recesses","sewing recesses","sewing recesses",NA,"adhesive recesses","adhesive recesses","sewing recesses","sewing recesses",NA,"sewing recesses",NA,"sewing recesses","sewing recesses",NA)
+   MID$SPF5T[i]<-switch(SPsw,NA,NA,"sewing recesses","sewing recesses","sewing recesses",NA,NA,"sewing recesses","sewing recesses","sewing recesses",NA,"sewing recesses",NA,NA,"sewing recesses",NA)
+   MID$SPF6T[i]<-switch(SPsw,NA,NA,"sewing recesses","sewing recesses","sewing recesses",NA,NA,"sewing recesses","sewing recesses","sewing recesses",NA,"sewing recesses",NA,NA,"sewing recesses",NA)
+    MID$SPF7T[i]<-switch(SPsw,NA,NA,"sewing recesses",NA,"sewing recesses",NA,NA,"sewing recesses",NA,"sewing recesses",NA,NA,NA,NA,NA,NA)
+   MID$SPF8T[i]<-switch(SPsw,NA,NA,"sewing recesses",NA,"sewing recesses",NA,NA,"sewing recesses",NA,"sewing recesses",NA,NA,NA,NA,NA,NA)
+    if(MID$SPNF[i]==2){
+      MID$SPF1ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF2ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+   } #endif SPNF=2
+       if(MID$SPNF[i]==3){
+      MID$SPF1ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF2ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF3ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      } #endif SPNF=
+    if(MID$SPNF[i]==4){
+      MID$SPF1ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF2ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF3ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF4ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+    } #endif SPNF=4
+    if(MID$SPNF[i]==6){
+      MID$SPF1ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF2ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF3ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF4ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF5ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF6ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+   } #endif SPNF=6
+    if(MID$SPNF[i]==8){
+      MID$SPF1ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF2ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF3ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF4ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF5ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF6ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1      
+      MID$SPF7ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$SPF8ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+   } #endif SPNF=8
+
+} #endif for SP>1
+
+# Deal with Book Block ID and Features
+BBFrnd<-floor(runif(1, min=0, max=100))
+if(MID$BB[i]>0){
+   MID$BBID[i]<-paste("CID",CIDcnt, sep="")
+        CIDcnt<-CIDcnt+1
+ SPBBcmb<- case_when(SPsw < 6 ~ 100,
+                  SPsw < 11 ~ 200,
+                  TRUE ~ 300)
+ SPBBcmb<-SPBBcmb+BBFrnd
+  BBsw<- case_when(SPBBcmb < 160 ~ 1,
+                   SPBBcmb < 200 ~ 2,
+                   SPBBcmb < 260 ~ 3,
+                   SPBBcmb < 300 ~ 4,
+                   SPBBcmb < 360 ~ 5,
+                   TRUE ~ 6)
+ MID$BBNF[i]<-switch(BBsw,2,4,2,4,0,2)
+ MID$BBF1T[i]<-switch(BBsw,"sawn-in recesses","sawn-in recesses","v-shaped recesses","v-shaped recesses",NA,"knife-cut recesses")
+ MID$BBF2T[i]<-switch(BBsw,"sawn-in recesses","sawn-in recesses","v-shaped recesses","v-shaped recesses",NA,"knife-cut recesses")
+ MID$BBF3T[i]<-switch(BBsw,NA,"knife-cut recesses",NA,"knife-cut recesses",NA,NA)
+ MID$BBF4T[i]<-switch(BBsw,NA,"knife-cut recesses",NA,"knife-cut recesses",NA,NA)
+    if(MID$BBNF[i]==2){
+    if(MID$BBF1T[i]=="sawn-in recesses" || MID$BBF1T[i]=="v-shaped recesses"){
+      MID$BBF1ID[i]<-MID$SPF1ID[i]
+      MID$BBF2ID[i]<-MID$SPF2ID[i]
+    }else{
+      MID$BBF1ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$BBF2ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+   }}
+    if(MID$BBNF[i]==4){
+    if(MID$BBF1T[i]=="sawn-in recesses" || MID$BBF1T[i]=="v-shaped recesses"){
+      MID$BBF1ID[i]<-MID$SPF1ID[i]
+      MID$BBF2ID[i]<-MID$SPF2ID[i]
+      MID$BBF3ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$BBF4ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+    }else{
+      MID$BBF1ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$BBF2ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$BBF3ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+      MID$BBF4ID[i]<-paste("FID",FIDcnt, sep="")
+      FIDcnt<-FIDcnt+1
+    }}
+} #endif for BB>0
+
+# Deal with Board ID
+if(MID$BD[i]>1 && MID$BD[i]<4){
+  MID$BD2ID[i]<-paste("CID",CIDcnt, sep="")
+        CIDcnt<-CIDcnt+1
+} #endif for BD= 2 or 3
+if(MID$BD[i]>3 && MID$BD[i]<6){
+  MID$BD1ID[i]<-paste("CID",CIDcnt, sep="")
+        CIDcnt<-CIDcnt+1
+} #endif for BD= 4 or 5
+if(MID$BD[i]>5){
+  MID$BD1ID[i]<-paste("CID",CIDcnt, sep="")
+        CIDcnt<-CIDcnt+1
+  MID$BD2ID[i]<-paste("CID",CIDcnt, sep="")
+        CIDcnt<-CIDcnt+1
+} #endif for BD>5
+
+# Set Clasp presence flags and IDs
+CLFrnd<-floor(runif(1, min=0, max=10))
+if(MID$CL[i]==0){
+  MID$CLP1[i]<-FALSE
+  MID$CLP1CSR[i]<-FALSE
+  MID$CLP2[i]<-FALSE
+  MID$CLP2CSR[i]<-FALSE
+} #endif CL= 0
+if(MID$CL[i]==1){
+  MID$CLP1[i]<-TRUE
+  if(CLFrnd<1 && !is.na(MID$BD2ID)){
+  MID$CLP1CSR[i]<-TRUE
+  MID$BD2CSR1ID[i]<-paste("FID",FIDcnt, sep="")
+  FIDcnt<-FIDcnt+1
+  }else{MID$CLP1CSR[i]<-FALSE}
+  MID$CLP2[i]<-FALSE
+  MID$CLP2CSR[i]<-FALSE
+} #endif CL= 1
+if(MID$CL[i]==2||MID$CL[i]==3){
+  MID$CLP1[i]<-TRUE
+  if(!is.na(MID$BD1ID[i])){MID$BD1BDCLC1ID[i]<-paste("CID",CIDcnt, sep="")}
+  if(!is.na(MID$BD2ID[i])){MID$BD2BDCLC1ID[i]<-paste("CID",CIDcnt, sep="")}
+    CIDcnt<-CIDcnt+1  
+  if(CLFrnd<1 && !is.na(MID$BD2ID)){
+  MID$CLP1CSR[i]<-TRUE
+  MID$BD2CSR1ID[i]<-paste("FID",FIDcnt, sep="")
+  FIDcnt<-FIDcnt+1
+  }else{MID$CLP1CSR[i]<-FALSE}
+  MID$CLP2[i]<-FALSE
+  MID$CLP2CSR[i]<-FALSE
+} #endif CL=2 or 3
+
+if(MID$CL[i]==4||MID$CL[i]==5){
+  MID$CLP1[i]<-TRUE
+  if(!is.na(MID$BD1ID[i])){MID$BD1BDCLC1ID[i]<-paste("CID",CIDcnt, sep="")}
+  if(!is.na(MID$BD2ID[i])){MID$BD2BDCLC1ID[i]<-paste("CID",CIDcnt, sep="")}
+    CIDcnt<-CIDcnt+1  
+  if(CLFrnd<1 && !is.na(MID$BD2ID)){
+  MID$CLP1CSR[i]<-TRUE
+  MID$BD2CSR1ID[i]<-paste("FID",FIDcnt, sep="")
+  FIDcnt<-FIDcnt+1
+   MID$CLP2CSR[i]<-TRUE
+  MID$BD2CSR2ID[i]<-paste("FID",FIDcnt, sep="")
+  FIDcnt<-FIDcnt+1
+  }else{
+    MID$CLP1CSR[i]<-FALSE
+    MID$CLP2CSR[i]<-FALSE}
+  MID$CLP2[i]<-TRUE
+} #endif CL=4 or 5
+if(MID$CL[i]==7){
+  MID$CLP1[i]<-TRUE
+    if(CLFrnd<1 && !is.na(MID$BD2ID)){
+  MID$CLP1CSR[i]<-TRUE
+  MID$BD2CSR1ID[i]<-paste("FID",FIDcnt, sep="")
+  FIDcnt<-FIDcnt+1
+   MID$CLP2CSR[i]<-TRUE
+  MID$BD2CSR2ID[i]<-paste("FID",FIDcnt, sep="")
+  FIDcnt<-FIDcnt+1
+  }else{
+    MID$CLP1CSR[i]<-FALSE
+    MID$CLP2CSR[i]<-FALSE}
+  MID$CLP2[i]<-TRUE
+} #endif CL=7
+
+if(MID$CL[i]==6||MID$CL[i]==8||MID$CL[i]==9){
+  MID$CLP1[i]<-TRUE
+  if(!is.na(MID$BD1ID[i])){MID$BD1BDCLC1ID[i]<-paste("CID",CIDcnt, sep="")}
+  if(!is.na(MID$BD2ID[i])){MID$BD2BDCLC1ID[i]<-paste("CID",CIDcnt, sep="")}
+    CIDcnt<-CIDcnt+1  
+  if(CLFrnd<1 && !is.na(MID$BD2ID)){
+  MID$CLP1CSR[i]<-TRUE
+  MID$BD2CSR1ID[i]<-paste("FID",FIDcnt, sep="")
+  FIDcnt<-FIDcnt+1
+   MID$CLP2CSR[i]<-TRUE
+  MID$BD2CSR2ID[i]<-paste("FID",FIDcnt, sep="")
+  FIDcnt<-FIDcnt+1
+  }else{
+    MID$CLP1CSR[i]<-FALSE
+    MID$CLP2CSR[i]<-FALSE}
+  MID$CLP2[i]<-TRUE
+  if(!is.na(MID$BD1ID[i])){MID$BD1BDCLC2ID[i]<-paste("CID",CIDcnt, sep="")}
+  if(!is.na(MID$BD2ID[i])){MID$BD2BDCLC2ID[i]<-paste("CID",CIDcnt, sep="")}
+    CIDcnt<-CIDcnt+1  
+} #endif CL=6 or 8 or 9
+} #end outerloop
+
+```
+
+## Process Normal records
+Create MIDN3 for records that have the standard characteristic "2390" flags.
+
+These records will be 20% sampled for Antx
+
+```{r, warning=FALSE, message=FALSE, eval=FALSE}
+MIDN <- subset(MID, BB==2)
+MIDN <- subset(MIDN, SP==3)
+MIDN <- subset(MIDN, BD==9)
+MIDN <- subset(MIDN, CL==0)
+
+library(dplyr)
+# Add some extra columns to make processing easier
+# Add random numbers 1-5 for 20% sampling in column 49
+MIDADD<- floor(runif(21425,min=1,max=6))
+MIDN2<- bind_cols(MIDN,MIDADD)
+#Add 5 colums to be used as flags for presence of recess codes SR,AR,SIR,VSR,KCR
+MIDADD<- setNames(data.frame(matrix(nrow = 21425, ncol=5), stringsAsFactors = FALSE), c("SR","AR","SIR","VSR","KCR"))
+MIDN3<- bind_cols(MIDN2,MIDADD)
+#Populate Flags
+for (i in 1:21425){
+  #Set all flags to FALSE
+      MIDN3$VSR[i]<-FALSE
+      MIDN3$SIR[i]<-FALSE
+      MIDN3$KCR[i]<-FALSE
+      MIDN3$AR[i]<-FALSE
+      MIDN3$SR[i]<-FALSE
+  #Check BB1 is present and set corresponding Flag to TRUE
+  if(!is.na(MIDN3$BBF1T[i])){
+    if(MIDN3$BBF1T[i]=="v-shaped recesses"){MIDN3$VSR[i]<-TRUE}
+    if(MIDN3$BBF1T[i]=="sawn-in recesses"){MIDN3$SIR[i]<-TRUE}
+    if(MIDN3$BBF1T[i]=="knife-cut recesses"){MIDN3$KCR[i]<-TRUE}}
+  #Check BB3 is present and set KCR Flag to TRUE      
+  if(!is.na(MIDN3$BBF3T[i])){MIDN3$KCR[i]<-TRUE}
+  #Check SP1 is present and if it is AR: if it is set AR Flag to TRUE      
+  if(!is.na(MIDN3$SPF1T[i])){if(MIDN3$SPF1T[i]=="adhesive recesses"){MIDN3$AR[i]<-TRUE}}
+  #Check SP3 is present and if it is AR or SR: if it is set corresponding Flag to TRUE      
+  if(!is.na(MIDN3$SPF3T[i])){
+    if(MIDN3$SPF3T[i]=="adhesive recesses"){MIDN3$AR[i]<-TRUE}
+    if(MIDN3$SPF3T[i]=="sewing recesses"){MIDN3$SR[i]<-TRUE}}
+  #Check SP5 is present and if it is SR: if it is set SR Flag to TRUE      
+  if(!is.na(MIDN3$SPF5T[i])){
+    if(MIDN3$SPF5T[i]=="sewing recesses"){MIDN3$SR[i]<-TRUE}}      
+} # End of populate flags loop
+  
+```
+
+## Process special records
+Create MIDS2 for all non-"2390" records.
+These will all be used in Antx and NilListx.
+
+```{r, warning=FALSE, message=FALSE, eval=FALSE}
+MIDS <- subset(MID, !BB==2 | !SP==3 | !BD==9 | !CL==0)
+#Add 5 colums to be used as flags for presence of recess codes SR,AR,SIR,VSR,KCR
+MIDSADD<- setNames(data.frame(matrix(nrow = 6575, ncol=5), stringsAsFactors = FALSE), c("SR","AR","SIR","VSR","KCR"))
+MIDS2<- bind_cols(MIDS,MIDSADD)
+#Populate Flags
+for (i in 1:6575){
+  #Set all flags to FALSE
+      MIDS2$VSR[i]<-FALSE
+      MIDS2$SIR[i]<-FALSE
+      MIDS2$KCR[i]<-FALSE
+      MIDS2$AR[i]<-FALSE
+      MIDS2$SR[i]<-FALSE
+  #Check BB1 is present and set corresponding Flag to TRUE
+  if(!is.na(MIDS2$BBF1T[i])){
+    if(MIDS2$BBF1T[i]=="v-shaped recesses"){MIDS2$VSR[i]<-TRUE}
+    if(MIDS2$BBF1T[i]=="sawn-in recesses"){MIDS2$SIR[i]<-TRUE}
+    if(MIDS2$BBF1T[i]=="knife-cut recesses"){MIDS2$KCR[i]<-TRUE}}
+  #Check BB3 is present and set KCR Flag to TRUE      
+  if(!is.na(MIDS2$BBF3T[i])){MIDS2$KCR[i]<-TRUE}
+  #Check SP1 is present and if it is AR: if it is set AR Flag to TRUE      
+  if(!is.na(MIDS2$SPF1T[i])){if(MIDS2$SPF1T[i]=="adhesive recesses"){MIDS2$AR[i]<-TRUE}}
+  #Check SP3 is present and if it is AR or SR: if it is set corresponding Flag to TRUE      
+  if(!is.na(MIDS2$SPF3T[i])){
+    if(MIDS2$SPF3T[i]=="adhesive recesses"){MIDS2$AR[i]<-TRUE}
+    if(MIDS2$SPF3T[i]=="sewing recesses"){MIDS2$SR[i]<-TRUE}}
+  #Check SP5 is present and if it is SR: if it is set SR Flag to TRUE      
+  if(!is.na(MIDS2$SPF5T[i])){
+    if(MIDS2$SPF5T[i]=="sewing recesses"){MIDS2$SR[i]<-TRUE}}      
+} # End of populate flags loop
+```
+
+## Generate modern record as XML
+Create the full records for all "Present" elements. 
+Each manuscript, component and feature has a UID explicitly declared, as well as manuscripts still having their original shelf mark.
+Components that never existed, are missing, or lost are not emitted even if they have UIDs ("Lost" components and their features do have UIDs but these are not emitted)
+
+```{r, warning=FALSE, message=FALSE, eval=FALSE}
+con <- file("Full.xml", "w")
+out <- '<?xml version = "1.0" encoding = "ISO-8859-1"?>'
+writeLines(out, con = con)
+out <- '<?xml-stylesheet type="text/xsl" href="crm.xsl"?>'
+writeLines(out, con = con)
+out <- '<CRMSet>'
+writeLines(out, con = con)
+# Start Outer Control Loop
+for (i in 1:28000){
+  # Start Manuscript Record
+out <- "\t<E1.CRM_Entity>"
+writeLines(out, con = con)
+  # Manuscript nature and identifiers
+out <- paste("\t\t<Identifier>",MID$MID[i],"</Identifier>\n\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+writeLines(out, con = con)
+out <- paste("\t\t<P1F.is_identified_by>\n\t\t\t<Identifier>",MID$MID[i],"</Identifier>\n\t\t\t<in_class>E41.Appellation</in_class>\n\t\t</P1F.is_identified_by>", sep = "")
+writeLines(out, con = con)
+out <- paste("\t\t<P1F.is_identified_by>\n\t\t\t<Identifier>",MID$SHELFMARK[i],"</Identifier>\n\t\t\t<in_class>E41.Appellation</in_class>\n\t\t</P1F.is_identified_by>", sep = "")
+writeLines(out, con = con)
+  # If BookBlock present add BookBlock details and up to 4 Features
+if(MID$BB[i]==2){
+  out <- paste("\t\t<P46F.is_composed_of>\n\t\t\t<Identifier>",MID$BBID[i],"</Identifier>\n\t\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+  writeLines(out, con = con)
+  # BookBlock ID
+  out <- paste("\t\t\t<P1F.is_identified_by>\n\t\t\t\t<Identifier>",MID$BBID[i],"</Identifier>\n\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # BookBlock Type
+  out <- "\t\t\t<P2F.has_type>\n\t\t\t\t<Identifier>bookblock</Identifier>\n\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t</P2F.has_type>"
+  writeLines(out, con = con)
+  # Feature 1
+    if(!is.na(MID$BBF1ID[i])){
+  out <- paste("\t\t\t<P56F.bears_feature>\n\t\t\t\t<Identifier>",MID$BBF1ID[i],"</Identifier>\n\t\t\t\t<in_class>E25.Human-Made_Feature</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Feature ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$BBF1ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Feature Type
+  out <- paste("\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>",MID$BBF1T[i],"</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P56F.bears_feature>", sep = "")
+  writeLines(out, con = con)
+} # End Feature 1
+  # Feature 2
+    if(!is.na(MID$BBF2ID[i])){
+  out <- paste("\t\t\t<P56F.bears_feature>\n\t\t\t\t<Identifier>",MID$BBF2ID[i],"</Identifier>\n\t\t\t\t<in_class>E25.Human-Made_Feature</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Feature ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$BBF2ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Feature Type
+  out <- paste("\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>",MID$BBF2T[i],"</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P56F.bears_feature>", sep = "")
+  writeLines(out, con = con)
+} # End Feature 2
+  # Feature 3
+    if(!is.na(MID$BBF3ID[i])){
+  out <- paste("\t\t\t<P56F.bears_feature>\n\t\t\t\t<Identifier>",MID$BBF3ID[i],"</Identifier>\n\t\t\t\t<in_class>E25.Human-Made_Feature</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Feature ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$BBF3ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Feature Type
+  out <- paste("\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>",MID$BBF3T[i],"</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P56F.bears_feature>", sep = "")
+  writeLines(out, con = con)
+} # End Feature 3
+  # Feature 4
+    if(!is.na(MID$BBF4ID[i])){
+  out <- paste("\t\t\t<P56F.bears_feature>\n\t\t\t\t<Identifier>",MID$BBF4ID[i],"</Identifier>\n\t\t\t\t<in_class>E25.Human-Made_Feature</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Feature ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$BBF4ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Feature Type
+  out <- paste("\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>",MID$BBF4T[i],"</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P56F.bears_feature>", sep = "")
+  writeLines(out, con = con)
+} # End Feature 4
+  out <- "\t\t</P46F.is_composed_of>"
+  writeLines(out, con = con)  
+} # End of BookBlock
+  # If Spine present add Spine details and up to 8 Features
+if(MID$SP[i]==3){
+  out <- paste("\t\t<P46F.is_composed_of>\n\t\t\t<Identifier>",MID$SPID[i],"</Identifier>\n\t\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Spine ID
+  out <- paste("\t\t\t<P1F.is_identified_by>\n\t\t\t\t<Identifier>",MID$SPID[i],"</Identifier>\n\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Spine Type
+  out <- "\t\t\t<P2F.has_type>\n\t\t\t\t<Identifier>spine</Identifier>\n\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t</P2F.has_type>"
+  writeLines(out, con = con)
+  # Feature 1
+    if(!is.na(MID$SPF1ID[i])){
+  out <- paste("\t\t\t<P56F.bears_feature>\n\t\t\t\t<Identifier>",MID$SPF1ID[i],"</Identifier>\n\t\t\t\t<in_class>E25.Human-Made_Feature</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Feature ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$SPF1ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Feature Type
+  out <- paste("\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>",MID$SPF1T[i],"</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P56F.bears_feature>", sep = "")
+  writeLines(out, con = con)
+} # End Feature 1
+  # Feature 2
+    if(!is.na(MID$SPF2ID[i])){
+  out <- paste("\t\t\t<P56F.bears_feature>\n\t\t\t\t<Identifier>",MID$SPF2ID[i],"</Identifier>\n\t\t\t\t<in_class>E25.Human-Made_Feature</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Feature ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$SPF2ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Feature Type
+  out <- paste("\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>",MID$SPF2T[i],"</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P56F.bears_feature>", sep = "")
+  writeLines(out, con = con)
+} # End Feature 2
+  # Feature 3
+    if(!is.na(MID$SPF3ID[i])){
+  out <- paste("\t\t\t<P56F.bears_feature>\n\t\t\t\t<Identifier>",MID$SPF3ID[i],"</Identifier>\n\t\t\t\t<in_class>E25.Human-Made_Feature</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Feature ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$SPF3ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Feature Type
+  out <- paste("\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>",MID$SPF3T[i],"</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P56F.bears_feature>", sep = "")
+  writeLines(out, con = con)
+} # End Feature 3
+  # Feature 4
+    if(!is.na(MID$SPF4ID[i])){
+  out <- paste("\t\t\t<P56F.bears_feature>\n\t\t\t\t<Identifier>",MID$SPF4ID[i],"</Identifier>\n\t\t\t\t<in_class>E25.Human-Made_Feature</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Feature ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$SPF4ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Feature Type
+  out <- paste("\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>",MID$SPF4T[i],"</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P56F.bears_feature>", sep = "")
+  writeLines(out, con = con)
+} # End Feature 4
+ # Feature 5
+    if(!is.na(MID$SPF5ID[i])){
+  out <- paste("\t\t\t<P56F.bears_feature>\n\t\t\t\t<Identifier>",MID$SPF5ID[i],"</Identifier>\n\t\t\t\t<in_class>E25.Human-Made_Feature</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Feature ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$SPF5ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Feature Type
+  out <- paste("\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>",MID$SPF5T[i],"</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P56F.bears_feature>", sep = "")
+  writeLines(out, con = con)
+} # End Feature 5
+  # Feature 6
+    if(!is.na(MID$SPF6ID[i])){
+  out <- paste("\t\t\t<P56F.bears_feature>\n\t\t\t\t<Identifier>",MID$SPF6ID[i],"</Identifier>\n\t\t\t\t<in_class>E25.Human-Made_Feature</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Feature ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$SPF6ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Feature Type
+  out <- paste("\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>",MID$SPF6T[i],"</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P56F.bears_feature>", sep = "")
+  writeLines(out, con = con)
+} # End Feature 6
+  # Feature 7
+    if(!is.na(MID$SPF7ID[i])){
+  out <- paste("\t\t\t<P56F.bears_feature>\n\t\t\t\t<Identifier>",MID$SPF7ID[i],"</Identifier>\n\t\t\t\t<in_class>E25.Human-Made_Feature</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Feature ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$SPF7ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Feature Type
+  out <- paste("\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>",MID$SPF7T[i],"</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P56F.bears_feature>", sep = "")
+  writeLines(out, con = con)
+} # End Feature 7
+  # Feature 8
+    if(!is.na(MID$SPF8ID[i])){
+  out <- paste("\t\t\t<P56F.bears_feature>\n\t\t\t\t<Identifier>",MID$SPF8ID[i],"</Identifier>\n\t\t\t\t<in_class>E25.Human-Made_Feature</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Feature ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$SPF8ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Feature Type
+  out <- paste("\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>",MID$SPF8T[i],"</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P56F.bears_feature>", sep = "")
+  writeLines(out, con = con)
+} # End Feature 8
+  out <- "\t\t</P46F.is_composed_of>"
+  writeLines(out, con = con)  
+} #end of Spine
+# If Board 1 present add details and for clasps if present
+if(MID$BD[i]==5||MID$BD[i]==8||MID$BD[i]==9){
+out <- paste("\t\t<P46F.is_composed_of>\n\t\t\t<Identifier>",MID$BD1ID[i],"</Identifier>\n\t\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+  writeLines(out, con = con)
+  # BookBoard ID
+  out <- paste("\t\t\t<P1F.is_identified_by>\n\t\t\t\t<Identifier>",MID$BD1ID[i],"</Identifier>\n\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # BookBoard Type
+  out <- "\t\t\t<P2F.has_type>\n\t\t\t\t<Identifier>board</Identifier>\n\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t</P2F.has_type>"
+  writeLines(out, con = con)
+  # Check for clasp 1 presence
+  if(MID$CL[i]==3||MID$CL[i]==5||MID$CL[i]==6||MID$CL[i]==9){
+  out <- paste("\t\t\t<P46F.is_composed_of>\n\t\t\t\t<Identifier>",MID$BD1BDCLC1ID[i],"</Identifier>\n\t\t\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Clasp ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$BD1BDCLC1ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Clasp Type and Close
+  out <- "\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>board clasp constituent</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P46F.is_composed_of>"
+  writeLines(out, con = con)
+  } # End clasp 1
+   # Check for clasp 2 presence
+  if(MID$CL[i]==9){
+  out <- paste("\t\t\t<P46F.is_composed_of>\n\t\t\t\t<Identifier>",MID$BD1BDCLC2ID[i],"</Identifier>\n\t\t\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Clasp ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$BD1BDCLC2ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Clasp Type and Close
+  out <- "\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>board clasp constituent</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P46F.is_composed_of>"
+  writeLines(out, con = con)
+  } # End clasp 2
+  out <- "\t\t</P46F.is_composed_of>"
+  writeLines(out, con = con)  
+} #End of Board 1 logic
+
+# If Board 2 present add details and for clasps if present
+if(MID$BD[i]==3||MID$BD[i]==7||MID$BD[i]==9){
+out <- paste("\t\t<P46F.is_composed_of>\n\t\t\t<Identifier>",MID$BD2ID[i],"</Identifier>\n\t\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+  writeLines(out, con = con)
+  # BookBoard ID
+  out <- paste("\t\t\t<P1F.is_identified_by>\n\t\t\t\t<Identifier>",MID$BD2ID[i],"</Identifier>\n\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # BookBoard Type
+  out <- "\t\t\t<P2F.has_type>\n\t\t\t\t<Identifier>board</Identifier>\n\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t</P2F.has_type>"
+  writeLines(out, con = con)
+  # Check for clasp 1 presence
+  if(MID$CL[i]==3||MID$CL[i]==5||MID$CL[i]==6||MID$CL[i]==9){
+  out <- paste("\t\t\t<P46F.is_composed_of>\n\t\t\t\t<Identifier>",MID$BD2BDCLC1ID[i],"</Identifier>\n\t\t\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Clasp ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$BD2BDCLC1ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Clasp Type and Close
+  out <- "\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>board clasp constituent</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P46F.is_composed_of>"
+  writeLines(out, con = con)
+  } # End clasp 1
+   # Check for clasp 2 presence
+  if(MID$CL[i]==9){
+  out <- paste("\t\t\t<P46F.is_composed_of>\n\t\t\t\t<Identifier>",MID$BD2BDCLC2ID[i],"</Identifier>\n\t\t\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Clasp ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$BD2BDCLC2ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Clasp Type and Close
+  out <- "\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>board clasp constituent</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P46F.is_composed_of>"
+  writeLines(out, con = con)
+  } # End clasp 2
+    # If CSR 1 present on a present Board 2 then emit Feature 
+  if(MID$CLP1CSR[i]){
+    out <- paste("\t\t\t<P56F.bears_feature>\n\t\t\t\t<Identifier>",MID$BD2CSR1ID[i],"</Identifier>\n\t\t\t\t<in_class>E25.Human-Made_Feature</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Feature ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$BD2CSR1ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Feature Type
+  out <- "\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>clasp-strap recess</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P56F.bears_feature>"
+  writeLines(out, con = con)
+} #End CSR 1
+  # If CSR 2 present on a present Board 2 then emit Feature 
+  if(MID$CLP1CSR[i]){
+    out <- paste("\t\t\t<P56F.bears_feature>\n\t\t\t\t<Identifier>",MID$BD2CSR2ID[i],"</Identifier>\n\t\t\t\t<in_class>E25.Human-Made_Feature</in_class>", sep = "")
+  writeLines(out, con = con)
+  # Feature ID
+  out <- paste("\t\t\t\t<P1F.is_identified_by>\n\t\t\t\t\t<Identifier>",MID$BD2CSR2ID[i],"</Identifier>\n\t\t\t\t\t<in_class>E41.Appellation</in_class>\n\t\t\t\t</P1F.is_identified_by>", sep = "")
+  writeLines(out, con = con)
+  # Feature Type
+  out <- "\t\t\t\t<P2F.has_type>\n\t\t\t\t\t<Identifier>clasp-strap recess</Identifier>\n\t\t\t\t\t<in_class>E55.Type</in_class>\n\t\t\t\t</P2F.has_type>\n\t\t\t</P56F.bears_feature>"
+  writeLines(out, con = con)
+} #End CSR 2
+   out <- "\t\t</P46F.is_composed_of>"
+  writeLines(out, con = con)  
+} #End of Board 2 logic
+# Close Manuscript Record
+  out <- "\t</E1.CRM_Entity>"
+  writeLines(out, con = con)  
+} # End of Outer Control Loop
+  # Close File
+  out <- "</CRMSet>"
+  writeLines(out, con = con)  
+close(con)
+```
+
+## Generate Antiquarian Record
+Ouput of the Antiquarian's records using TP and NTP. This corrspondes to the Intermediate state of the dataset.
+The loops that control processing the two files will need to be adjusted on subsequent runs to accomodate the actual split of records between MIDN3 and MIDS2.
+Only approx 20% of the MIDN3 records (ie "2390" records) are output (those that have a value of 3 in column 49).
+All records from MIDS2 are output. 
+All components that are "Present" or "Lost" are emitted using *TP46 is composed of physical thing of type*. 
+Note that Boards and Clasps have only one entry, even if there are two of them.
+All feature types on "Present" or "Lost" components are emitted using *TP56 bears feature of type*.
+Any features types not on "Present" or "Lost" components are emitted using *NTP56 does not bear feature of type*.
+
+```{r, warning=FALSE, message=FALSE, eval=FALSE}
+con <- file("Ant1.xml", "w")
+out <- '<?xml version = "1.0" encoding = "ISO-8859-1"?>'
+writeLines(out, con = con)
+out <- '<?xml-stylesheet type="text/xsl" href="crm.xsl"?>'
+writeLines(out, con = con)
+out <- '<CRMSet>'
+writeLines(out, con = con)
+# Start Outer Control Loop
+for (i in 1:21425){
+  # Select 20% records
+  if(MIDN3[i,49]==3){
+    # Start Manuscript Record
+out <- "\t<E1.CRM_Entity>"
+writeLines(out, con = con)
+  # Manuscript nature and identifiers
+out <- paste("\t\t<Identifier>ANT",MIDN3$INC[i],"</Identifier>\n\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+writeLines(out, con = con)
+out <- paste("\t\t<P1F.is_identified_by>\n\t\t\t<Identifier>ANT",MIDN3$INC[i],"</Identifier>\n\t\t\t<in_class>E41.Appellation</in_class>\n\t\t</P1F.is_identified_by>", sep = "")
+writeLines(out, con = con)
+out <- paste("\t\t<P1F.is_identified_by>\n\t\t\t<Identifier>",MIDN3$SHELFMARK[i],"</Identifier>\n\t\t\t<in_class>E41.Appellation</in_class>\n\t\t</P1F.is_identified_by>", sep = "")
+writeLines(out, con = con)
+# Book Block Lost or Present
+if(MIDN3$BB[i]>0){
+out <- "\t\t<TP46F.is_composed_of_physical_thing_of_type>\n\t\t\t<Identifier>bookblock</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP46F.is_composed_of_physical_thing_of_type>"
+writeLines(out, con = con)
+} # End Book Block
+# Spine Lost or Present
+if(MIDN3$SP[i]>1){
+out <- "\t\t<TP46F.is_composed_of_physical_thing_of_type>\n\t\t\t<Identifier>spine</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP46F.is_composed_of_physical_thing_of_type>"
+writeLines(out, con = con)
+} # End Spine
+# Board(s) Lost or Present
+if(MIDN3$BD[i]>1){
+out <- "\t\t<TP46F.is_composed_of_physical_thing_of_type>\n\t\t\t<Identifier>board</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP46F.is_composed_of_physical_thing_of_type>"
+writeLines(out, con = con)
+} # End Board
+# Any Clasp(s) Lost or Present
+if(MIDN3$CL[i]==2||MIDN3$CL[i]==3||MIDN3$CL[i]==4||MIDN3$CL[i]==5||MIDN3$CL[i]==6||MIDN3$CL[i]==8||MIDN3$CL[i]==9){
+out <- "\t\t<TP46F.is_composed_of_physical_thing_of_type>\n\t\t\t<Identifier>board clasp constituent</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP46F.is_composed_of_physical_thing_of_type>"
+writeLines(out, con = con)
+} # End Clasp
+# Features
+# Sewing Recesses
+if(MIDN3$SR[i]){
+  out <- "\t\t<TP56F.bears_feature_of_type>\n\t\t\t<Identifier>sewing recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP56F.bears_feature_of_type>"
+}else{
+  out <- "\t\t<NTP56F.does_not_bear_feature_of_type>\n\t\t\t<Identifier>sewing recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP56F.does_not_bear_feature_of_type>"
+} 
+ writeLines(out, con = con)
+  # End SR
+ # Adhesive Recesses
+if(MIDN3$AR[i]){
+  out <- "\t\t<TP56F.bears_feature_of_type>\n\t\t\t<Identifier>adhesive recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP56F.bears_feature_of_type>"
+}else{
+  out <- "\t\t<NTP56F.does_not_bear_feature_of_type>\n\t\t\t<Identifier>adhesive recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP56F.does_not_bear_feature_of_type>"
+} 
+ writeLines(out, con = con)
+  # End AR
+  # Sawn-In Recesses
+if(MIDN3$SIR[i]){
+  out <- "\t\t<TP56F.bears_feature_of_type>\n\t\t\t<Identifier>sawn-in recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP56F.bears_feature_of_type>"
+}else{
+  out <- "\t\t<NTP56F.does_not_bear_feature_of_type>\n\t\t\t<Identifier>sawn-in recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP56F.does_not_bear_feature_of_type>"
+} 
+ writeLines(out, con = con)
+  # End SIR
+   # V-Shaped Recesses
+if(MIDN3$VSR[i]){
+  out <- "\t\t<TP56F.bears_feature_of_type>\n\t\t\t<Identifier>v-shaped recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP56F.bears_feature_of_type>"
+}else{
+  out <- "\t\t<NTP56F.does_not_bear_feature_of_type>\n\t\t\t<Identifier>v-shaped recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP56F.does_not_bear_feature_of_type>"
+} 
+ writeLines(out, con = con)
+  # End VSR
+  # Knife-Cut Recesses
+if(MIDN3$KCR[i]){
+  out <- "\t\t<TP56F.bears_feature_of_type>\n\t\t\t<Identifier>knife-cut recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP56F.bears_feature_of_type>"
+}else{
+  out <- "\t\t<NTP56F.does_not_bear_feature_of_type>\n\t\t\t<Identifier>knife-cut recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP56F.does_not_bear_feature_of_type>"
+} 
+ writeLines(out, con = con)
+  # End KCR
+   # Clasp-Strap Recess
+if(MIDN3$CLP1CSR[i]||MIDN3$CLP2CSR[i]){
+  out <- "\t\t<TP56F.bears_feature_of_type>\n\t\t\t<Identifier>clasp-strap recess</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP56F.bears_feature_of_type>"
+}else{
+  out <- "\t\t<NTP56F.does_not_bear_feature_of_type>\n\t\t\t<Identifier>clasp-strap recess</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP56F.does_not_bear_feature_of_type>"
+} 
+ writeLines(out, con = con)
+  # End CSR
+ 
+  # Close Manuscript Record
+  out <- "\t</E1.CRM_Entity>"
+  writeLines(out, con = con)  
+} #End of 20%
+} # End of Outer Control Loop
+
+# Start 2nd Outer Control Loop
+for (i in 1:6575){
+    # Start Manuscript Record
+out <- "\t<E1.CRM_Entity>"
+writeLines(out, con = con)
+  # Manuscript nature and identifiers
+out <- paste("\t\t<Identifier>ANT",MIDS2$INC[i],"</Identifier>\n\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+writeLines(out, con = con)
+out <- paste("\t\t<P1F.is_identified_by>\n\t\t\t<Identifier>ANT",MIDS2$INC[i],"</Identifier>\n\t\t\t<in_class>E41.Appellation</in_class>\n\t\t</P1F.is_identified_by>", sep = "")
+writeLines(out, con = con)
+out <- paste("\t\t<P1F.is_identified_by>\n\t\t\t<Identifier>",MIDS2$SHELFMARK[i],"</Identifier>\n\t\t\t<in_class>E41.Appellation</in_class>\n\t\t</P1F.is_identified_by>", sep = "")
+writeLines(out, con = con)
+# Book Block Lost or Present
+if(MIDS2$BB[i]>0){
+out <- "\t\t<TP46F.is_composed_of_physical_thing_of_type>\n\t\t\t<Identifier>bookblock</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP46F.is_composed_of_physical_thing_of_type>"
+writeLines(out, con = con)
+} # End Book Block
+# Spine Lost or Present
+if(MIDS2$SP[i]>1){
+out <- "\t\t<TP46F.is_composed_of_physical_thing_of_type>\n\t\t\t<Identifier>spine</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP46F.is_composed_of_physical_thing_of_type>"
+writeLines(out, con = con)
+} # End Spine
+# Board(s) Lost or Present
+if(MIDS2$BD[i]>1){
+out <- "\t\t<TP46F.is_composed_of_physical_thing_of_type>\n\t\t\t<Identifier>board</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP46F.is_composed_of_physical_thing_of_type>"
+writeLines(out, con = con)
+} # End Board
+# Any Clasp(s) Lost or Present
+if(MIDS2$CL[i]==2||MIDS2$CL[i]==3||MIDS2$CL[i]==4||MIDS2$CL[i]==5||MIDS2$CL[i]==6||MIDS2$CL[i]==8||MIDS2$CL[i]==9){
+out <- "\t\t<TP46F.is_composed_of_physical_thing_of_type>\n\t\t\t<Identifier>board clasp constituent</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP46F.is_composed_of_physical_thing_of_type>"
+writeLines(out, con = con)
+} # End Clasp
+# Features
+# Sewing Recesses
+if(MIDS2$SR[i]){
+  out <- "\t\t<TP56F.bears_feature_of_type>\n\t\t\t<Identifier>sewing recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP56F.bears_feature_of_type>"
+}else{
+  out <- "\t\t<NTP56F.does_not_bear_feature_of_type>\n\t\t\t<Identifier>sewing recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP56F.does_not_bear_feature_of_type>"
+} 
+ writeLines(out, con = con)
+  # End SR
+ # Adhesive Recesses
+if(MIDS2$AR[i]){
+  out <- "\t\t<TP56F.bears_feature_of_type>\n\t\t\t<Identifier>adhesive recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP56F.bears_feature_of_type>"
+}else{
+  out <- "\t\t<NTP56F.does_not_bear_feature_of_type>\n\t\t\t<Identifier>adhesive recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP56F.does_not_bear_feature_of_type>"
+} 
+ writeLines(out, con = con)
+  # End AR
+  # Sawn-In Recesses
+if(MIDS2$SIR[i]){
+  out <- "\t\t<TP56F.bears_feature_of_type>\n\t\t\t<Identifier>sawn-in recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP56F.bears_feature_of_type>"
+}else{
+  out <- "\t\t<NTP56F.does_not_bear_feature_of_type>\n\t\t\t<Identifier>sawn-in recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP56F.does_not_bear_feature_of_type>"
+} 
+ writeLines(out, con = con)
+  # End SIR
+   # V-Shaped Recesses
+if(MIDS2$VSR[i]){
+  out <- "\t\t<TP56F.bears_feature_of_type>\n\t\t\t<Identifier>v-shaped recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP56F.bears_feature_of_type>"
+}else{
+  out <- "\t\t<NTP56F.does_not_bear_feature_of_type>\n\t\t\t<Identifier>v-shaped recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP56F.does_not_bear_feature_of_type>"
+} 
+ writeLines(out, con = con)
+  # End VSR
+  # Knife-Cut Recesses
+if(MIDS2$KCR[i]){
+  out <- "\t\t<TP56F.bears_feature_of_type>\n\t\t\t<Identifier>knife-cut recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP56F.bears_feature_of_type>"
+}else{
+  out <- "\t\t<NTP56F.does_not_bear_feature_of_type>\n\t\t\t<Identifier>knife-cut recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP56F.does_not_bear_feature_of_type>"
+} 
+ writeLines(out, con = con)
+  # End KCR
+   # Clasp-Strap Recess
+if(MIDS2$CLP1CSR[i]||MIDS2$CLP2CSR[i]){
+  out <- "\t\t<TP56F.bears_feature_of_type>\n\t\t\t<Identifier>clasp-strap recess</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</TP56F.bears_feature_of_type>"
+}else{
+  out <- "\t\t<NTP56F.does_not_bear_feature_of_type>\n\t\t\t<Identifier>clasp-strap recess</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP56F.does_not_bear_feature_of_type>"
+} 
+ writeLines(out, con = con)
+  # End CSR
+   # Close Manuscript Record
+  out <- "\t</E1.CRM_Entity>"
+  writeLines(out, con = con)  
+} # End of 2nd Outer Control Loop
+
+
+# Close File
+ out <- "</CRMSet>"
+ writeLines(out, con = con) 
+close(con)
+
+```
+
+## Generate Negative List data
+Ouput of NilList1 using TP and NTP. This correspondes to the Original state of the dataset.
+The loops that control processing will need to be adjusted on subsequent runs to accomodate the actual number of records in MIDS2.
+This summarises lists of shelf marks that indicate that the listed manuscripts never had particular components or groupings of feature types.
+The lists are (have been) processed in the following order
+Spine
+Boards
+Clasps
+Spine Features
+Book Block Features
+Recesses
+Board Features (This deliberately introduces 6 contradictions that are documented in the *Sample Data Design* spreadsheet)
+It uses *NTP46 is not composed of physical thing of type* for components and *NTP56 does not bear feature of type* for groupings of feature types.
+
+```{r, warning=FALSE, message=FALSE, eval=FALSE}
+con <- file("NilList1.xml", "w")
+out <- '<?xml version = "1.0" encoding = "ISO-8859-1"?>'
+writeLines(out, con = con)
+out <- '<?xml-stylesheet type="text/xsl" href="crm.xsl"?>'
+writeLines(out, con = con)
+out <- '<CRMSet>'
+writeLines(out, con = con)
+
+# Start SP Control Loop
+for (i in 1:6575){
+  if(MIDS2$SP[i]==0){
+  # Manuscript No Spine Record
+out <- paste("\t<E1.CRM_Entity>\n\t\t<Identifier>",MIDS2$SHELFMARK[i],"</Identifier>\n\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+writeLines(out, con = con)
+out <- paste("\t\t<P1F.is_identified_by>\n\t\t\t<Identifier>",MIDS2$SHELFMARK[i],"</Identifier>\n\t\t\t<in_class>E41.Appellation</in_class>\n\t\t</P1F.is_identified_by>", sep = "")
+writeLines(out, con = con)
+out <- "\t\t<NTP46F.is_not_composed_of_physical_thing_of_type>\n\t\t\t<Identifier>spine</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP46F.is_not_composed_of_physical_thing_of_type>\n\t</E1.CRM_Entity>"
+writeLines(out, con = con)  
+} # End If SP=0
+} # End of SP Control Loop
+
+# Start BD Control Loop
+for (i in 1:6575){
+  if(MIDS2$BD[i]==0){
+  # Manuscript No Board Record
+out <- paste("\t<E1.CRM_Entity>\n\t\t<Identifier>",MIDS2$SHELFMARK[i],"</Identifier>\n\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+writeLines(out, con = con)
+out <- paste("\t\t<P1F.is_identified_by>\n\t\t\t<Identifier>",MIDS2$SHELFMARK[i],"</Identifier>\n\t\t\t<in_class>E41.Appellation</in_class>\n\t\t</P1F.is_identified_by>", sep = "")
+writeLines(out, con = con)
+out <- "\t\t<NTP46F.is_not_composed_of_physical_thing_of_type>\n\t\t\t<Identifier>board</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP46F.is_not_composed_of_physical_thing_of_type>\n\t</E1.CRM_Entity>"
+writeLines(out, con = con)  
+} # End If BD=0
+} # End of BD Control Loop
+
+# Start CL Control Loop
+for (i in 1:6575){
+  if(MIDS2$CL[i]==0){
+  # Manuscript No Clasp Record
+out <- paste("\t<E1.CRM_Entity>\n\t\t<Identifier>",MIDS2$SHELFMARK[i],"</Identifier>\n\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+writeLines(out, con = con)
+out <- paste("\t\t<P1F.is_identified_by>\n\t\t\t<Identifier>",MIDS2$SHELFMARK[i],"</Identifier>\n\t\t\t<in_class>E41.Appellation</in_class>\n\t\t</P1F.is_identified_by>", sep = "")
+writeLines(out, con = con)
+out <- "\t\t<NTP46F.is_not_composed_of_physical_thing_of_type>\n\t\t\t<Identifier>board clasp constituent</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP46F.is_not_composed_of_physical_thing_of_type>\n\t</E1.CRM_Entity>"
+writeLines(out, con = con)  
+} # End If CL=0
+} # End of CL Control Loop
+
+# Start Spine Feature Control Loop
+for (i in 1:6575){
+  if(!MIDS2$SR[i]&&!MIDS2$AR[i]&&!MIDS2$SIR[i]&&!MIDS2$VSR[i]){
+  # Manuscript No Spine Feature Record
+out <- paste("\t<E1.CRM_Entity>\n\t\t<Identifier>",MIDS2$SHELFMARK[i],"</Identifier>\n\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+writeLines(out, con = con)
+out <- paste("\t\t<P1F.is_identified_by>\n\t\t\t<Identifier>",MIDS2$SHELFMARK[i],"</Identifier>\n\t\t\t<in_class>E41.Appellation</in_class>\n\t\t</P1F.is_identified_by>", sep = "")
+writeLines(out, con = con)
+out <- "\t\t<NTP56F.does_not_bear_feature_of_type>\n\t\t\t<Identifier>spine features</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP56F.does_not_bear_feature_of_type>\n\t</E1.CRM_Entity>"
+writeLines(out, con = con)  
+} # End If Spine features not present
+} # End of Spine Feature Control Loop
+
+# Start Book Block Feature Control Loop
+for (i in 1:6575){
+  if(!MIDS2$SIR[i]&&!MIDS2$VSR[i]&&!MIDS2$KCR[i]){
+  # Manuscript No Book Block Feature Record
+out <- paste("\t<E1.CRM_Entity>\n\t\t<Identifier>",MIDS2$SHELFMARK[i],"</Identifier>\n\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+writeLines(out, con = con)
+out <- paste("\t\t<P1F.is_identified_by>\n\t\t\t<Identifier>",MIDS2$SHELFMARK[i],"</Identifier>\n\t\t\t<in_class>E41.Appellation</in_class>\n\t\t</P1F.is_identified_by>", sep = "")
+writeLines(out, con = con)
+out <- "\t\t<NTP56F.does_not_bear_feature_of_type>\n\t\t\t<Identifier>bookblock features</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP56F.does_not_bear_feature_of_type>\n\t</E1.CRM_Entity>"
+writeLines(out, con = con)  
+} # End If Book Block features not present
+} # End of Book Block Feature Control Loop
+
+# Start Recesses Feature Control Loop
+for (i in 1:6575){
+  if(!MIDS2$SR[i]&&!MIDS2$AR[i]&&!MIDS2$SIR[i]&&!MIDS2$VSR[i]&&!MIDS2$KCR[i]&&!MIDS2$CLP1CSR[i]&&!MIDS2$CLP2CSR[i]){
+  # Manuscript No Recesses Feature Record
+out <- paste("\t<E1.CRM_Entity>\n\t\t<Identifier>",MIDS2$SHELFMARK[i],"</Identifier>\n\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+writeLines(out, con = con)
+out <- paste("\t\t<P1F.is_identified_by>\n\t\t\t<Identifier>",MIDS2$SHELFMARK[i],"</Identifier>\n\t\t\t<in_class>E41.Appellation</in_class>\n\t\t</P1F.is_identified_by>", sep = "")
+writeLines(out, con = con)
+out <- "\t\t<NTP56F.does_not_bear_feature_of_type>\n\t\t\t<Identifier>recesses</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP56F.does_not_bear_feature_of_type>\n\t</E1.CRM_Entity>"
+writeLines(out, con = con)  
+} # End If Recesses features not present
+} # End of Recesses Feature Control Loop
+
+# Start BD=2 False Feature Control Loop
+for (i in 1:6575){
+  if(MIDS2$BD[i]==2){
+  # Manuscript BD=2 False Feature Record
+out <- paste("\t<E1.CRM_Entity>\n\t\t<Identifier>",MIDS2$SHELFMARK[i],"</Identifier>\n\t\t<in_class>E22.Human-Made_Object</in_class>", sep = "")
+writeLines(out, con = con)
+out <- paste("\t\t<P1F.is_identified_by>\n\t\t\t<Identifier>",MIDS2$SHELFMARK[i],"</Identifier>\n\t\t\t<in_class>E41.Appellation</in_class>\n\t\t</P1F.is_identified_by>", sep = "")
+writeLines(out, con = con)
+out <- "\t\t<NTP56F.does_not_bear_feature_of_type>\n\t\t\t<Identifier>board features</Identifier>\n\t\t\t<in_class>E55.Type</in_class>\n\t\t</NTP56F.does_not_bear_feature_of_type>\n\t</E1.CRM_Entity>"
+writeLines(out, con = con)  
+} # End If BD==2 
+} # End of BD=2 False Feature Control Loop
+
+# Close File
+ out <- "</CRMSet>"
+ writeLines(out, con = con) 
+close(con)
+
+```
