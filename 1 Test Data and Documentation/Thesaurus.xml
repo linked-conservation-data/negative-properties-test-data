@@ -1,0 +1,168 @@
+<?xml version = "1.0" encoding = "ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="crm.xsl"?>
+<CRMSet>
+	<E1.CRM_Entity>
+		<Identifier>feature</Identifier>
+		<in_class>E55.Type</in_class>
+	</E1.CRM_Entity>
+	<E1.CRM_Entity>
+		<Identifier>bookblock</Identifier>
+		<in_class>E55.Type</in_class>
+	</E1.CRM_Entity>
+	<E1.CRM_Entity>
+		<Identifier>spine</Identifier>
+		<in_class>E55.Type</in_class>
+	</E1.CRM_Entity>
+	<E1.CRM_Entity>
+		<Identifier>board</Identifier>
+		<in_class>E55.Type</in_class>
+	</E1.CRM_Entity>
+	<E1.CRM_Entity>
+		<Identifier>recesses</Identifier>
+		<in_class>E55.Type</in_class>
+		<P127F.has_broader_term>
+			<Identifier>feature</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+	</E1.CRM_Entity>
+	<E1.CRM_Entity>
+		<Identifier>bookblock features</Identifier>
+		<in_class>E55.Type</in_class>
+		<P127F.has_broader_term>
+			<Identifier>feature</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+		<P127F.has_broader_term>
+			<Identifier>bookblock</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+	</E1.CRM_Entity>
+	<E1.CRM_Entity>
+		<Identifier>spine features</Identifier>
+		<in_class>E55.Type</in_class>
+		<P127F.has_broader_term>
+			<Identifier>feature</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+		<P127F.has_broader_term>
+			<Identifier>spine</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+	</E1.CRM_Entity>
+	<E1.CRM_Entity>
+		<Identifier>board features</Identifier>
+		<in_class>E55.Type</in_class>
+		<P127F.has_broader_term>
+			<Identifier>feature</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+		<P127F.has_broader_term>
+			<Identifier>board</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+	</E1.CRM_Entity>
+	<E1.CRM_Entity>
+		<Identifier>board clasp constituent</Identifier>
+		<in_class>E55.Type</in_class>
+		<P127F.has_broader_term>
+			<Identifier>board features</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+	</E1.CRM_Entity>
+	<E1.CRM_Entity>
+		<Identifier>clasp-strap recess</Identifier>
+		<in_class>E55.Type</in_class>
+		<P127F.has_broader_term>
+			<Identifier>recesses</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+		<P127F.has_broader_term>
+			<Identifier>board clasp constituent</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+	</E1.CRM_Entity>
+	<E1.CRM_Entity>
+		<Identifier>knive-cut recesses</Identifier>
+		<in_class>E55.Type</in_class>
+		<P127F.has_broader_term>
+			<Identifier>recesses</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+		<P127F.has_broader_term>
+			<Identifier>bookblock features</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+	</E1.CRM_Entity>
+	<E1.CRM_Entity>
+		<Identifier>sewing recesses</Identifier>
+		<in_class>E55.Type</in_class>
+		<P127F.has_broader_term>
+			<Identifier>recesses</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+		<P127F.has_broader_term>
+			<Identifier>spine features</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+	</E1.CRM_Entity>
+	<E1.CRM_Entity>
+		<Identifier>adhesive recesses</Identifier>
+		<in_class>E55.Type</in_class>
+		<P127F.has_broader_term>
+			<Identifier>recesses</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+		<P127F.has_broader_term>
+			<Identifier>spine features</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+	</E1.CRM_Entity>
+	<E1.CRM_Entity>
+		<Identifier>sawn-in recesses</Identifier>
+		<in_class>E55.Type</in_class>
+		<P127F.has_broader_term>
+			<Identifier>recesses</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+		<P127F.has_broader_term>
+			<Identifier>bookblock features</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+		<P127F.has_broader_term>
+			<Identifier>spine features</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+	</E1.CRM_Entity>
+	<E1.CRM_Entity>
+		<Identifier>v-shaped recesses</Identifier>
+		<in_class>E55.Type</in_class>
+		<P127F.has_broader_term>
+			<Identifier>recesses</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+		<P127F.has_broader_term>
+			<Identifier>bookblock features</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+		<P127F.has_broader_term>
+			<Identifier>spine features</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+	</E1.CRM_Entity>
+	<E1.CRM_Entity>
+		<Identifier>sawn-in recesses</Identifier>
+		<in_class>E55.Type</in_class>
+		<P127F.has_broader_term>
+			<Identifier>recesses</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+		<P127F.has_broader_term>
+			<Identifier>bookblock features</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+		<P127F.has_broader_term>
+			<Identifier>spine features</Identifier>
+			<in_class>E55.Type</in_class>
+		</P127F.has_broader_term>
+	</E1.CRM_Entity>
+</CRMSet>
